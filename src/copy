@@ -1,0 +1,25 @@
+int findEmptySlot;
+        String tmpKeyInsideFn = scanKeyOrValue("Key is: ");
+        for (int i = 0; i < dualDataArray.length; i++) {
+            if (tmpKeyInsideFn.equals(dualDataArray[i][0])) {
+                System.out.println("This Key already exist, Do you want to change Value? (y/n)");
+                if (yesOrNoShortAnswer()) {
+                    dualDataArray[i][1] = scanKeyOrValue("!!!Value for " + dualDataArray[i][0] + " is: ");
+                }
+
+            } else {
+
+                for (int j = 0; j < dualDataArray.length; j++) {
+                    if (dualDataArray[j][0] == null) {
+                        findEmptySlot = j;
+                        dualDataArray[findEmptySlot][0] = tmpKeyInsideFn;
+                        dualDataArray[j][1] = scanKeyOrValue("Value for " + dualDataArray[j][0] + " is: ");
+                        break;
+                    }
+
+                }
+            }
+            break;
+        }
+
+    }
