@@ -1,53 +1,84 @@
 package DataPackage;
 
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Scanner;
+import java.util.*;
+
 
 public class InfiniteInputMain {
-    public static String[][] dualDataArray = new String[10][2];
+    //створення масиву, з яким будемо працювати.
+    public static String[][] dataArray = new String[0][2];
+    public static Scanner scan = new Scanner(System.in);
 
+    //цикл наповнення контейнеру.
     public static void main(String[] args) {
-        while (true) {
-            inputOnePair();
-            System.out.println(Arrays.deepToString(dualDataArray));
-        }
+        String answer;
+        System.out.println("type /help");
+        do {
+            answer = scan.nextLine();
+            if (answer.equalsIgnoreCase("/new")) {
+                inputOnePair();
+                printArray(dataArray);
+
+            } else if (answer.equalsIgnoreCase("/delete_index")) {
+                if (dataArray.length > 0) {
+                    deleteKeyByIndex(scanNumber("Input index for delete: "));
+                    printArray(dataArray);
+                } else {
+                    System.out.println("Array is already empty!");
+                }
+
+            } else if (answer.equalsIgnoreCase("/delete_item")) {
+                deleteKeyByName();
+                printArray(dataArray);
+
+            } else if (answer.equalsIgnoreCase("/help")) {
+                System.out.println("""
+                        /new - type new key.
+                        /delete_index - type index for delete.
+                        /delete_item - type name for delete.
+                        /end - program exit.""");
+            }
+
+        } while (!answer.equalsIgnoreCase("/end"));
     }
 
     /**
-     * Функція приймає аргумент для виводу в консоль (що ми запитуємо в користувача)
-     * створює сканер, потім перевіряє обрізаний на пробіли ввід на наявність символів
-     * якщо символи присутні, то *виводить в консоль* та повертає результат строки.
-     * на вході в функцію змінюємо isErrorInScanFn змінюється на помилку до моменту
-     * повернення строки, при поверненні вертає false для виходу з циклу.
+     * @param outputText text only for user output.
+     * @return String what we put in array. It can be anything like Key of Value.
      */
     public static String scanInput(String outputText) {
 
-        Scanner scan = new Scanner(System.in);
-        String ResultTemp = null;
-        boolean isErrorInScanFn = true;
-
-        while (isErrorInScanFn) {
+        String resultTemp;
+        do {
             System.out.println(outputText);
-            ResultTemp = scan.nextLine();
-            if (ResultTemp.trim().isEmpty()) {
+            resultTemp = scan.nextLine();
+            if (resultTemp.trim().isEmpty())
                 System.out.println(StorageClass.errorEmptyField);
-            } else {
-                isErrorInScanFn = false;
-            }
         }
-        return ResultTemp.trim();
+        while (resultTemp.trim().isEmpty());
+        return resultTemp.trim();
+
+    }
+
+    public static int scanNumber(String text) {
+        do {
+            System.out.println(text);
+            if (scan.hasNextInt()) {
+                return scan.nextInt();
+            } else {
+                scan.nextLine();
+            }
+        } while (!scan.hasNextInt());
+        return -1;
     }
 
     /**
-     * Зчитує введення, та ігнорує все окрім Y та N.
-     * ігнорує Case. вихід з циклу відбувається
-     * тільки давши відповідь.
+     * Read input and ignore anything except Y or N. ignore case.
+     *
+     * @return Bool true for YES and false for NO
      */
     public static Boolean answerYesOrNo() {
         System.out.println(StorageClass.warningKeyExist);
 
-        Scanner scan = new Scanner(System.in);
         String answer = scan.nextLine().toUpperCase(Locale.ROOT);
         while (!answer.equals("Y") && !answer.equals("N")) {
             System.out.println(StorageClass.yesOrNo);
@@ -58,23 +89,31 @@ public class InfiniteInputMain {
     }
 
     /**
-     * Функція для пошуку введеного аргументу в масиві по першому індексу.
+     * Search key in array. If catch null in a row return false, like not founded.
+     *
+     * @param keyItem key what we are looking for.
+     * @return true if we found kay in data and false otherwise.
      */
     public static Boolean isThatKeyFoundInData(String keyItem) {
-        for (String[] strings : dualDataArray) {
-            if (keyItem.equalsIgnoreCase(strings[StorageClass.keyPositionInArray])) {
+        for (String[] strings : dataArray) {
+            if (keyItem.equalsIgnoreCase(strings[StorageClass.keyPosition])) {
                 return true;
+            } else if (strings[StorageClass.keyPosition] == null) {
+                return false;
             }
         }
         return false;
     }
 
     /**
-     * Пошук індексу ключового слова в списку dualDataArray
+     * Search for a key index of argument.
+     *
+     * @param keyItem key what are we looking for.
+     * @return index of founded key.
      */
     public static int keyFoundIndex(String keyItem) {
-        for (int i = 0; i < dualDataArray.length; i++) {
-            if (keyItem.equalsIgnoreCase(dualDataArray[i][StorageClass.keyPositionInArray])) {
+        for (int i = 0; i < dataArray.length; i++) {
+            if (keyItem.equalsIgnoreCase(dataArray[i][StorageClass.keyPosition])) {
                 return i;
             }
         }
@@ -82,44 +121,27 @@ public class InfiniteInputMain {
         return 0;
     }
 
-    /**
-     * Пошук першого вільного місця для запису нового ключа.
-     * Якщо масив заповнений, то повертає індекс першого елементу.
-     * можливо буде перероблена в процесі створення другого масиву, або
-     * буде вбудований тригер для копіювання масиву з більшим контейнером.
-     */
-    public static int searchFirstEmptyKeyPlaceInArray() {
-        for (int i = 0; i < dualDataArray.length; i++) {
-            if (dualDataArray[i][StorageClass.keyPositionInArray] == null) {
-                return i;
-            }
-        }
-        //Виклик функції на створення нового списку.
-        return 0;
-    }
 
     /**
-     * Спочатку зчитується введення потенційного ключа з клавіатури.
-     * Виконується перевірка на наявність такого в масиві, якщо існує,
-     * то пропонується переписати ключ для такого масиву.
-     * в іншому випадку шукає вільне місце та записує туди пару ключ-значення.
+     * High function that launch inputKeyIfExist if Key exist and
+     * inputKeyIfNotExist otherwise.
      */
     public static void inputOnePair() {
-        String tmpKeyInsideFn = scanInput(StorageClass.keyIs);
-        if (isThatKeyFoundInData(tmpKeyInsideFn)) {
-            inputKeyIfExist(tmpKeyInsideFn);
+        String tmpKey = scanInput(StorageClass.keyIs);
+        if (isThatKeyFoundInData(tmpKey)) {
+            inputKeyIfExist(tmpKey);
         } else {
-            inputKeyIfNotExist(tmpKeyInsideFn);
+            inputKeyIfNotExist(tmpKey);
         }
     }
 
     /**
-     * Логіка для випадку, коли введений ключ знаходиться в масиві.
+     * Logic for case when Key exist in array.
      */
-    public static void inputKeyIfExist(String tmpKeyInsideFn) {
+    public static void inputKeyIfExist(String tmpKey) {
         if (answerYesOrNo()) {
-            dualDataArray[keyFoundIndex(tmpKeyInsideFn)][StorageClass.valuePositionInArray] = scanInput("New Value for "
-                    + dualDataArray[keyFoundIndex(tmpKeyInsideFn)][StorageClass.keyPositionInArray] + " is: ");
+            dataArray[keyFoundIndex(tmpKey)][StorageClass.valuePosition] = scanInput("New Value for "
+                    + dataArray[keyFoundIndex(tmpKey)][StorageClass.keyPosition] + " is: ");
         } else {
             System.out.println(StorageClass.skipped);
         }
@@ -127,13 +149,70 @@ public class InfiniteInputMain {
     }
 
     /**
-     * Логіка для випадку, коли введений ключ являється унікальним.
+     * Logic for case when Key is unique.
      */
     public static void inputKeyIfNotExist(String tmpKeyInsideFn) {
-        int emptyKey = searchFirstEmptyKeyPlaceInArray();
-        dualDataArray[emptyKey][StorageClass.keyPositionInArray] = tmpKeyInsideFn;
-        dualDataArray[emptyKey][StorageClass.valuePositionInArray] = scanInput("Value for "
-                + dualDataArray[emptyKey][StorageClass.keyPositionInArray] + " is: ");
+        dataArray = incrementArrayHeight(dataArray);
+        dataArray[dataArray.length - 1][StorageClass.keyPosition] = tmpKeyInsideFn;
+        dataArray[dataArray.length - 1][StorageClass.valuePosition] = scanInput("Value for "
+                + dataArray[dataArray.length - 1][StorageClass.keyPosition] + " is: ");
+    }
+
+    public static String[][] incrementArrayHeight(String[][] array) {
+        String[][] temp = array.clone();
+        array = new String[array.length + 1][StorageClass.arrayWight];
+        System.arraycopy(temp, 0, array, 0, temp.length);
+        return array;
+    }
+
+    public static String[][] decrementArrayHeight(String[][] array) {
+        String[][] temp = array.clone();
+        array = new String[array.length - 1][StorageClass.arrayWight];
+        System.arraycopy(temp, 0, array, 0, temp.length - 1);
+        return array;
+    }
+
+    public static void deleteKeyByIndex(int index) {
+        if (index >= 0 && index <= dataArray.length - 1) {
+            for (int i = index; i == dataArray.length - 2; i++) {
+                dataArray[i][StorageClass.keyPosition] = dataArray[i + 1][StorageClass.keyPosition];
+                dataArray[i][StorageClass.valuePosition] = dataArray[i + 1][StorageClass.valuePosition];
+            }
+            dataArray = decrementArrayHeight(dataArray);
+        } else {
+            System.out.println("Index out of range!");
+        }
+    }
+
+    public static void deleteKeyByName() {
+        String tmpKey = scanInput(StorageClass.keyIs);
+        if (isThatKeyFoundInData(tmpKey)) {
+            deleteKeyByIndex(keyFoundIndex(tmpKey));
+        } else {
+            System.out.println("Key does not exist.");
+        }
+    }
+
+    public static void printArray(String[][] arr){
+        for (int i=0; i<arr.length;i++) {
+            System.out.print("index "+ i +" || ");
+            for (int j = 0; j<arr[i].length; j++)
+                if(j==StorageClass.keyPosition){
+                    System.out.print("Key: " + arr[i][j] + " | Values: ");
+                } else {
+                    System.out.print(arr[i][j] + ", ");
+                }
+            System.out.println();
+        }
+    }
+
+    public static String[] splitValues(int key) {
+        String values = scanInput(StorageClass.valueInputText);
+        String[] splitValues = values.split(" ");
+        if ((splitValues.length  + 1) > StorageClass.arrayWight) {
+            StorageClass.arrayWight = splitValues.length + 1;
+        }
+        return splitValues;
     }
 
 }
