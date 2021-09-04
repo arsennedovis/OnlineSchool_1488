@@ -4,38 +4,32 @@ import java.util.*;
 
 
 public class InfiniteInputMain {
-    //створення масиву, з яким будемо працювати.
-    public static String[][] dataArray = new String[0][2];
+    public static String[][] dataArray = new String[0][0];
     public static Scanner scan = new Scanner(System.in);
 
-    //цикл наповнення контейнеру.
     public static void main(String[] args) {
         String answer;
         System.out.println("type /help");
         do {
             answer = scan.nextLine();
             if (answer.equalsIgnoreCase("/new")) {
-                inputOnePair();
+                inputOnePair(dataArray);
                 printArray(dataArray);
 
             } else if (answer.equalsIgnoreCase("/delete_index")) {
                 if (dataArray.length > 0) {
-                    deleteKeyByIndex(scanNumber("Input index for delete: "));
+                    dataArray = deleteKeyByIndex(scanNumber(StorageClass.indexForDeleteText), dataArray);
                     printArray(dataArray);
                 } else {
-                    System.out.println("Array is already empty!");
+                    System.out.println(StorageClass.arrayEmptyText);
                 }
 
             } else if (answer.equalsIgnoreCase("/delete_item")) {
-                deleteKeyByName();
+                dataArray = deleteKeyByName(dataArray);
                 printArray(dataArray);
 
             } else if (answer.equalsIgnoreCase("/help")) {
-                System.out.println("""
-                        /new - type new key.
-                        /delete_index - type index for delete.
-                        /delete_item - type name for delete.
-                        /end - program exit.""");
+                System.out.println(StorageClass.helpText);
             }
 
         } while (!answer.equalsIgnoreCase("/end"));
@@ -46,7 +40,6 @@ public class InfiniteInputMain {
      * @return String what we put in array. It can be anything like Key of Value.
      */
     public static String scanInput(String outputText) {
-
         String resultTemp;
         do {
             System.out.println(outputText);
@@ -59,6 +52,11 @@ public class InfiniteInputMain {
 
     }
 
+    /**
+     * Input, ignore all inputs except integer.
+     * @param text - any text for display.
+     * @return int number
+     */
     public static int scanNumber(String text) {
         do {
             System.out.println(text);
@@ -94,8 +92,8 @@ public class InfiniteInputMain {
      * @param keyItem key what we are looking for.
      * @return true if we found kay in data and false otherwise.
      */
-    public static Boolean isThatKeyFoundInData(String keyItem) {
-        for (String[] strings : dataArray) {
+    public static Boolean isThatKeyFoundInData(String keyItem, String[][] array) {
+        for (String[] strings : array) {
             if (keyItem.equalsIgnoreCase(strings[StorageClass.keyPosition])) {
                 return true;
             } else if (strings[StorageClass.keyPosition] == null) {
@@ -121,98 +119,103 @@ public class InfiniteInputMain {
         return 0;
     }
 
-
     /**
      * High function that launch inputKeyIfExist if Key exist and
      * inputKeyIfNotExist otherwise.
      */
-    public static void inputOnePair() {
+    public static void inputOnePair(String[][] array) {
         String tmpKey = scanInput(StorageClass.keyIs);
-        if (isThatKeyFoundInData(tmpKey)) {
-            inputKeyIfExist(tmpKey);
+        if (isThatKeyFoundInData(tmpKey, array)) {
+            if (answerYesOrNo()) {
+                dataArray = fillSlotByValues(scanInput("Values is: ").split(","), tmpKey, dataArray, true);
+
+            } else {
+                System.out.println(StorageClass.skippedText);
+            }
         } else {
-            inputKeyIfNotExist(tmpKey);
+            dataArray = fillSlotByValues(scanInput(StorageClass.valueInputText).split(","), tmpKey, dataArray, false);
         }
-    }
-
-    /**
-     * Logic for case when Key exist in array.
-     */
-    public static void inputKeyIfExist(String tmpKey) {
-        if (answerYesOrNo()) {
-            dataArray[keyFoundIndex(tmpKey)][StorageClass.valuePosition] = scanInput("New Value for "
-                    + dataArray[keyFoundIndex(tmpKey)][StorageClass.keyPosition] + " is: ");
-        } else {
-            System.out.println(StorageClass.skipped);
-        }
-
-    }
-
-    /**
-     * Logic for case when Key is unique.
-     */
-    public static void inputKeyIfNotExist(String tmpKeyInsideFn) {
-        dataArray = incrementArrayHeight(dataArray);
-        dataArray[dataArray.length - 1][StorageClass.keyPosition] = tmpKeyInsideFn;
-        dataArray[dataArray.length - 1][StorageClass.valuePosition] = scanInput("Value for "
-                + dataArray[dataArray.length - 1][StorageClass.keyPosition] + " is: ");
-    }
-
-    public static String[][] incrementArrayHeight(String[][] array) {
-        String[][] temp = array.clone();
-        array = new String[array.length + 1][StorageClass.arrayWight];
-        System.arraycopy(temp, 0, array, 0, temp.length);
-        return array;
     }
 
     public static String[][] decrementArrayHeight(String[][] array) {
         String[][] temp = array.clone();
-        array = new String[array.length - 1][StorageClass.arrayWight];
+        array = new String[array.length - 1][];
         System.arraycopy(temp, 0, array, 0, temp.length - 1);
         return array;
     }
 
-    public static void deleteKeyByIndex(int index) {
-        if (index >= 0 && index <= dataArray.length - 1) {
-            for (int i = index; i == dataArray.length - 2; i++) {
-                dataArray[i][StorageClass.keyPosition] = dataArray[i + 1][StorageClass.keyPosition];
-                dataArray[i][StorageClass.valuePosition] = dataArray[i + 1][StorageClass.valuePosition];
+    public static String[][] incrementArrayHeight(String[][] getArray) {
+        String[][] arrayClone = getArray.clone();
+        getArray = new String[getArray.length + 1][];
+        System.arraycopy(arrayClone, 0, getArray, 0, getArray.length - 1);
+        return getArray;
+    }
+
+    public static String[][] fillSlotByValues(String[] valuesArray, String keyName, String[][] getArray, boolean isExist) {
+        String[] valuesArrayFiltered = Arrays.stream(valuesArray).filter(x -> !x.trim().isEmpty()).toArray(String[]::new);
+        String[] arrayKeyAndValues = new String[1 + valuesArrayFiltered.length];
+        arrayKeyAndValues[StorageClass.keyPosition] = keyName;
+        for (int i = 1; i < arrayKeyAndValues.length; i++) {
+            arrayKeyAndValues[i] = valuesArrayFiltered[i - 1].trim();
+        }
+        if (!isExist) {
+            getArray = incrementArrayHeight(getArray);
+            getArray[getArray.length - 1] = arrayKeyAndValues;
+        } else {
+            getArray[keyFoundIndex(keyName)] = arrayKeyAndValues;
+        }
+        return getArray;
+    }
+
+    public static String[][] deleteKeyByIndex(int index, String[][] array) {
+        String[][] res;
+        if (index >= 0 && index <= array.length - 1) {
+            for (int i = index; i == array.length - 2; i++) {
+                array[i] = array[i + 1];
             }
-            dataArray = decrementArrayHeight(dataArray);
         } else {
-            System.out.println("Index out of range!");
+            System.out.println(StorageClass.indexOutOfRangeText);
         }
+        res = decrementArrayHeight(array);
+        return res;
     }
 
-    public static void deleteKeyByName() {
+    public static String[][] deleteKeyByName(String[][] array) {
+        String[][] res = array;
         String tmpKey = scanInput(StorageClass.keyIs);
-        if (isThatKeyFoundInData(tmpKey)) {
-            deleteKeyByIndex(keyFoundIndex(tmpKey));
+        if (isThatKeyFoundInData(tmpKey, array)) {
+            res = deleteKeyByIndex(keyFoundIndex(tmpKey), array);
         } else {
-            System.out.println("Key does not exist.");
+            System.out.println(StorageClass.keyDoesNotExist);
         }
+        return res;
     }
 
-    public static void printArray(String[][] arr){
-        for (int i=0; i<arr.length;i++) {
-            System.out.print("index "+ i +" || ");
-            for (int j = 0; j<arr[i].length; j++)
-                if(j==StorageClass.keyPosition){
-                    System.out.print("Key: " + arr[i][j] + " | Values: ");
+    public static void printArray(String[][] arr) {
+        for (int i = 0; i < arr.length; i++) {
+            System.out.print("index " + i + " || ");
+            for (int j = 0; j < arr[i].length; j++) {
+                if (j == StorageClass.keyPosition) {
+                    System.out.print("Key: " + emptySpacesForKeysDecorate(arr, arr[i][j]) + " | Values: ");
+                } else if (j == StorageClass.keyPosition + 1) {
+                    System.out.print(arr[i][j]);
                 } else {
-                    System.out.print(arr[i][j] + ", ");
+                    System.out.print(", " + arr[i][j]);
                 }
-            System.out.println();
+            }
+            System.out.println(".");
         }
     }
 
-    public static String[] splitValues(int key) {
-        String values = scanInput(StorageClass.valueInputText);
-        String[] splitValues = values.split(" ");
-        if ((splitValues.length  + 1) > StorageClass.arrayWight) {
-            StorageClass.arrayWight = splitValues.length + 1;
+    public static String emptySpacesForKeysDecorate(String[][] array, String key) {
+        int longestKey = 0;
+
+        for (String[] strings : array) {
+            if (strings[StorageClass.keyPosition].length() > longestKey) {
+                longestKey = strings[StorageClass.keyPosition].length();
+            }
         }
-        return splitValues;
+        return key + " ".repeat(Math.max(0, longestKey - key.length()));
     }
 
 }
