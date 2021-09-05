@@ -12,11 +12,11 @@ public class InfiniteInputMain {
         System.out.println("type /help");
         do {
             answer = scan.nextLine();
-            if (answer.equalsIgnoreCase("/new")) {
+            if (answer.equalsIgnoreCase("/new")||answer.equalsIgnoreCase("/n")) {
                 inputOnePair(dataArray);
                 printArray(dataArray);
 
-            } else if (answer.equalsIgnoreCase("/delete_index")) {
+            } else if (answer.equalsIgnoreCase("/delete_index")||answer.equalsIgnoreCase("/din")) {
                 if (dataArray.length > 0) {
                     dataArray = deleteKeyByIndex(scanNumber(StorageClass.indexForDeleteText), dataArray);
                     printArray(dataArray);
@@ -24,11 +24,11 @@ public class InfiniteInputMain {
                     System.out.println(StorageClass.arrayEmptyText);
                 }
 
-            } else if (answer.equalsIgnoreCase("/delete_item")) {
+            } else if (answer.equalsIgnoreCase("/delete_item")||answer.equalsIgnoreCase("/dit")) {
                 dataArray = deleteKeyByName(dataArray);
                 printArray(dataArray);
 
-            } else if (answer.equalsIgnoreCase("/help")) {
+            } else if (answer.equalsIgnoreCase("/help")||answer.equalsIgnoreCase("/h")) {
                 System.out.println(StorageClass.helpText);
             }
 
@@ -58,15 +58,14 @@ public class InfiniteInputMain {
      * @return int number
      */
     public static int scanNumber(String text) {
-        do {
-            System.out.println(text);
-            if (scan.hasNextInt()) {
-                return scan.nextInt();
-            } else {
-                scan.nextLine();
-            }
-        } while (!scan.hasNextInt());
-        return -1;
+        int i;
+        System.out.println(text);
+        while (!scan.hasNextInt()){
+            System.out.println(StorageClass.notANumberText);
+            scan.nextLine();
+        }
+        i = scan.nextInt();
+        return i;
     }
 
     /**
@@ -120,8 +119,8 @@ public class InfiniteInputMain {
     }
 
     /**
-     * High function that launch inputKeyIfExist if Key exist and
-     * inputKeyIfNotExist otherwise.
+     * High function that launch fillSlotByValues with true condition if Key exist and
+     * with false otherwise.
      */
     public static void inputOnePair(String[][] array) {
         String tmpKey = scanInput(StorageClass.keyIs);
@@ -151,8 +150,20 @@ public class InfiniteInputMain {
         return getArray;
     }
 
+    /**
+     * fn for fill slot by values.
+     * @param valuesArray array with new values String.
+     * @param keyName Slot for write new values here.
+     * @param getArray array for working with.
+     * @param isExist condition to determinate where write new values in exist key or new.
+     * @return return main data array.
+     */
     public static String[][] fillSlotByValues(String[] valuesArray, String keyName, String[][] getArray, boolean isExist) {
         String[] valuesArrayFiltered = Arrays.stream(valuesArray).filter(x -> !x.trim().isEmpty()).toArray(String[]::new);
+        if (valuesArrayFiltered.length == 0){
+            System.out.println(StorageClass.skippedText);
+            return getArray;
+        }
         String[] arrayKeyAndValues = new String[1 + valuesArrayFiltered.length];
         arrayKeyAndValues[StorageClass.keyPosition] = keyName;
         for (int i = 1; i < arrayKeyAndValues.length; i++) {
@@ -173,10 +184,11 @@ public class InfiniteInputMain {
             for (int i = index; i == array.length - 2; i++) {
                 array[i] = array[i + 1];
             }
+            res = decrementArrayHeight(array);
         } else {
             System.out.println(StorageClass.indexOutOfRangeText);
+            res = array;
         }
-        res = decrementArrayHeight(array);
         return res;
     }
 

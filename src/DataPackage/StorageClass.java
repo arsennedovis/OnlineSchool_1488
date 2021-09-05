@@ -8,7 +8,7 @@ public class StorageClass {
     public static String yesOrNo = "Y/N?";
     public static String keyIs = "Key is: ";
     public static String skippedText = "Skipped.";
-    public static String arrayEmptyText = "Skipped.";
+    public static String arrayEmptyText = "Array is empty!";
     public static String indexForDeleteText = "Input index for delete: ";
     public static String valueInputText = "Input array of values, separated by ',': ";
     public static String helpText = """
@@ -18,5 +18,6 @@ public class StorageClass {
                         /end - program exit.""";
     public static String indexOutOfRangeText = "Index out of range!";
     public static String keyDoesNotExist = "Key does not exist.";
+    public static String notANumberText = "Input integer number!";
 
 }
